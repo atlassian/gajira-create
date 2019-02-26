@@ -3,7 +3,13 @@ Create new issue
 
 ## Usage
 
-TBD
+```
+action "Jira Create" {
+  uses = "atlassian/gajira-create@master"
+  needs = ["Jira Login"]
+  args = "--project=GA --issuetype=Build --summary=\"Build completed for $GITHUB_REPOSITORY\" --description=\"[Compare branch|{{event.compare}}] \" "
+}
+```
 
 ----
 ## Action Spec:
