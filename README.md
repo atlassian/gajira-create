@@ -1,6 +1,8 @@
 # Jira Create
 Create new issue
 
+Requires [Jira Login Action](https://github.com/marketplace/actions/jira-login)
+
 ## Usage
 
 ```
