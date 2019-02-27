@@ -1,9 +1,11 @@
 # Jira Create
 Create new issue
 
-Requires [Jira Login Action](https://github.com/marketplace/actions/jira-login)
+For examples on how to use this, check out the [gajira-demo](https://github.com/atlassian/gajira-demo) repository
 
 ## Usage
+
+> ##### Note: this action requires [Jira Login Action](https://github.com/marketplace/actions/jira-login)
 
 ```
 action "Jira Create" {
