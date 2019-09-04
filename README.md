@@ -8,12 +8,27 @@ For examples on how to use this, check out the [gajira-demo](https://github.com/
 
 > ##### Note: this action requires [Jira Login Action](https://github.com/marketplace/actions/jira-login)
 
-```
-action "Jira Create" {
-  uses = "atlassian/gajira-create@master"
-  needs = ["Jira Login"]
-  args = "--project=GA --issuetype=Build --summary=\"Build completed for $GITHUB_REPOSITORY\" --description=\"[Compare branch|{{event.compare}}] \" "
-}
+```yaml
+- name: Login
+  uses: atlassian/gajira-login@master
+  env:
+    JIRA_BASE_URL: ${{ secrets.JIRA_BASE_URL }}
+    JIRA_USER_EMAIL: ${{ secrets.JIRA_USER_EMAIL }}
+    JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
+
+- name: Create
+  id: create
+  uses: ./atlassian/gajira-create
+  with:
+    project: GA
+    issuetype: Build
+    summary: |
+      Build completed for ${{ github.repository }}
+    description: |
+      Compare branch
+
+- name: Log created issue
+  run: echo "Issue ${{ steps.create.outputs.issue }} was created"
 ```
 
 ----
@@ -22,12 +37,14 @@ action "Jira Create" {
 ### Environment variables
 - None
 
-### Arguments
-- `--project=<project key>` - Key of the project
-- `--issuetype=<issue type>` - Type of the issue to be created. Example: 'Incident'
-- `--summary=<text>` - Issue summary
-- `--description=<text>` - Issue description
-- `--fields.customfield_<number>.id=<custom field id>` - ID of the custom field. Example `--fields.customfield_10021.id=10001`
+### Inputs
+- `project` (required) - Key of the project
+- `issuetype` (required) - Type of the issue to be created. Example: 'Incident'
+- `summary` (required) - Issue summary
+- `description` - Issue description
+
+### Outputs
+- `issue` - Key of the newly created issue
 
 ### Reads fields from config file at $HOME/jira/config.yml
 - `project`
