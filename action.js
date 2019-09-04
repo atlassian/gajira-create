@@ -64,6 +64,7 @@ module.exports = class {
       })
     }
 
+    // TODO fields
     if (argv.fields) {
       providedFields = [...providedFields, ...this.transformFields(argv.fields)]
     }

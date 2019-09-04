@@ -1,6 +1,6 @@
 const fs = require('fs')
 const YAML = require('yaml')
-const yargs = require('yargs')
+const core = require('@actions/core')
 
 const cliConfigPath = `${process.env.HOME}/.jira.d/config.yml`
 const configPath = `${process.env.HOME}/jira/config.yml`
@@ -19,9 +19,13 @@ async function exec () {
     }).execute()
 
     if (result) {
+      // result.issue is the issue key
       console.log(`Created issue: ${result.issue}`)
       console.log(`Saving ${result.issue} to ${cliConfigPath}`)
       console.log(`Saving ${result.issue} to ${configPath}`)
+
+      // Expose created issue's key as an output
+      core.setOutput("issue", result.issue)
 
       const yamledResult = YAML.stringify(result)
       const extendedConfig = Object.assign({}, config, result)
@@ -40,41 +44,13 @@ async function exec () {
 }
 
 function parseArgs () {
-  yargs
-    .option('project', {
-      alias: 'p',
-      describe: 'Provide project to create issue in',
-      demandOption: !config.project,
-      default: config.project,
-      type: 'string',
-    })
-    .option('issuetype', {
-      alias: 't',
-      describe: 'Provide type of the issue to be created',
-      demandOption: !config.issuetype,
-      default: config.issuetype,
-      type: 'string',
-    })
-    .option('summary', {
-      alias: 's',
-      describe: 'Provide summary for the issue',
-      demandOption: !config.summary,
-      default: config.summary,
-      type: 'string',
-    })
-    .option('description', {
-      alias: 'd',
-      describe: 'Provide issue description',
-      default: config.description,
-      type: 'string',
-    })
-
-  yargs
-    .parserConfiguration({
-      'parse-numbers': false,
-    })
-
-  return yargs.argv
+  return {
+    project: core.getInput('project'),
+    issuetype: core.getInput('issuetype'),
+    summary: core.getInput('summary'),
+    description: core.getInput('description'),
+    fields: false // TODO
+  }
 }
 
 exec()
