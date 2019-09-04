@@ -4,12 +4,14 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "NODE_ENV=testing jest __tests__"
+    "test": "NODE_ENV=testing jest __tests__",
+    "build": "ncc build index.js --minify",
+    "watch": "ncc build index.js --watch --minify"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@actions/core": "file:toolkit/actions-core-0.0.0.tgz",
+    "@actions/core": "^1.0.0",
     "lodash": "^4.17.11",
     "node-fetch": "^2.3.0",
     "require-directory": "^2.1.1",
