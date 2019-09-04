@@ -9,16 +9,9 @@ For examples on how to use this, check out the [gajira-demo](https://github.com/
 > ##### Note: this action requires [Jira Login Action](https://github.com/marketplace/actions/jira-login)
 
 ```yaml
-- name: Login
-  uses: atlassian/gajira-login@master
-  env:
-    JIRA_BASE_URL: ${{ secrets.JIRA_BASE_URL }}
-    JIRA_USER_EMAIL: ${{ secrets.JIRA_USER_EMAIL }}
-    JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
-
 - name: Create
   id: create
-  uses: ./atlassian/gajira-create
+  uses: ./atlassian/gajira-create@master
   with:
     project: GA
     issuetype: Build
