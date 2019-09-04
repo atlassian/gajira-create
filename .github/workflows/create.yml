@@ -27,7 +27,7 @@ jobs:
         summary: |
           Build completed for ${{ github.repository }}
         description: |
-          Compare branch
+          Compare branch|${{ github.event.compare }} # https://developer.github.com/v3/activity/events/types/#webhook-payload-example-31
 
     - name: Log created issue
       run: echo "Issue ${{ steps.create.outputs.issue }} was created"
