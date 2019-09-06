@@ -1,5 +1,8 @@
 name: Jira Create
 description: Create a new Jira issue
+branding:
+  icon: 'check-square'
+  color: 'blue'
 inputs:
   project:
     description: Key of the project
