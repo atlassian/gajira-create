@@ -1,4 +1,4 @@
-name: Jira Create
+name: Jira Create issue
 description: Create a new Jira issue
 branding:
   icon: 'check-square'
