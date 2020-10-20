@@ -16,14 +16,11 @@ const { mocks } = require('./helpers')
 
 test(`Should create simple issue with interpolated event field in summary and description`, async () => {
   const action = new Action({
-    githubEvent: {
-      ref: 'ref/head/blah',
-    },
     argv: {
       project: projectKey,
       issuetype: issuetypeName,
-      summary: 'This is summary {{ event.ref }}',
-      description: 'This is description {{ event.ref }}',
+      summary: 'This is summary ref/head/blah',
+      description: 'This is description ref/head/blah',
     },
     config,
   })
