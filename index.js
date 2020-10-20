@@ -49,7 +49,7 @@ function parseArgs () {
     issuetype: core.getInput('issuetype'),
     summary: core.getInput('summary'),
     description: core.getInput('description'),
-    fields: false, // TODO
+    fields: core.getInput('fields'),
   }
 }
 
