@@ -11,7 +11,7 @@ For examples on how to use this, check out the [gajira-demo](https://github.com/
 ```yaml
 - name: Create
   id: create
-  uses: ./atlassian/gajira-create@master
+  uses: atlassian/gajira-create@master
   with:
     project: GA
     issuetype: Build
