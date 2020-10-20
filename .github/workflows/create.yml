@@ -27,7 +27,8 @@ jobs:
         summary: |
           Build completed for ${{ github.repository }}
         description: |
-          Compare branch|${{ github.event.compare }} # https://developer.github.com/v3/activity/events/types/#webhook-payload-example-31
+          Compare branch|${{ github.event.compare }} # https://docs.github.com/en/free-pro-team@latest/developers/webhooks-and-events/webhook-events-and-payloads
+        fields: '{"customfield_10171": "field value from actions. Please do not remove"}'
 
     - name: Log created issue
       run: echo "Issue ${{ steps.create.outputs.issue }} was created"

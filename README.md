@@ -19,6 +19,7 @@ For examples on how to use this, check out the [gajira-demo](https://github.com/
       Build completed for ${{ github.repository }}
     description: |
       Compare branch
+    fields: '{"customfield_10171": "test"}'
 
 - name: Log created issue
   run: echo "Issue ${{ steps.create.outputs.issue }} was created"
@@ -35,6 +36,7 @@ For examples on how to use this, check out the [gajira-demo](https://github.com/
 - `issuetype` (required) - Type of the issue to be created. Example: 'Incident'
 - `summary` (required) - Issue summary
 - `description` - Issue description
+- `fields` - Additional fields in JSON format
 
 ### Outputs
 - `issue` - Key of the newly created issue

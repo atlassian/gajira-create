@@ -61,7 +61,6 @@ module.exports = class {
       })
     }
 
-    // TODO fields
     if (argv.fields) {
       providedFields = [...providedFields, ...this.transformFields(argv.fields)]
     }
@@ -79,7 +78,9 @@ module.exports = class {
     return { issue: issue.key }
   }
 
-  transformFields (fields) {
+  transformFields (fieldsString) {
+    const fields = JSON.parse(fieldsString)
+
     return Object.keys(fields).map(fieldKey => ({
       key: fieldKey,
       value: fields[fieldKey],
