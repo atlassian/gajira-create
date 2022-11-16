@@ -1,4 +1,3 @@
-
 const nock = require('nock')
 const Action = require('../action')
 

@@ -1,5 +1,4 @@
-on:
-  push
+on: push
 
 name: Test Create Issue
 
@@ -10,6 +9,8 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@master
+
+#    - run: yarn test
 
     - name: Login
       uses: atlassian/gajira-login@master
@@ -24,10 +25,8 @@ jobs:
       with:
         project: GA
         issuetype: Build
-        summary: |
-          Build completed for ${{ github.repository }}
-        description: |
-          Compare branch|${{ github.event.compare }} # https://docs.github.com/en/free-pro-team@latest/developers/webhooks-and-events/webhook-events-and-payloads
+        summary: Build completed for ${{ github.repository }}
+        description: Compare branch|${{ github.event.compare }} # https://docs.github.com/en/free-pro-team@latest/developers/webhooks-and-events/webhook-events-and-payloads
         fields: '{"customfield_10171": "field value from actions. Please do not remove"}'
 
     - name: Log created issue
