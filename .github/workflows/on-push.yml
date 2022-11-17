@@ -8,12 +8,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
-      uses: actions/checkout@master
+      uses: actions/checkout
 
-#    - run: yarn test
+    - run: yarn test
 
     - name: Login
-      uses: atlassian/gajira-login@master
+      uses: atlassian/gajira-login
       env:
         JIRA_BASE_URL: ${{ secrets.JIRA_BASE_URL }}
         JIRA_USER_EMAIL: ${{ secrets.JIRA_USER_EMAIL }}
@@ -23,9 +23,9 @@ jobs:
       id: create
       uses: ./
       with:
-        project: GA
-        issuetype: Build
-        summary: Build completed for ${{ github.repository }}
+        project: CREATE
+        issuetype: Task
+        summary: Do the thing for ${{ github.repository }}
         description: Compare branch|${{ github.event.compare }} # https://docs.github.com/en/free-pro-team@latest/developers/webhooks-and-events/webhook-events-and-payloads
         fields: '{"customfield_10171": "field value from actions. Please do not remove"}'
 
