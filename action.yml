@@ -23,5 +23,5 @@ outputs:
   issue:
     description: Key of the newly created issue
 runs:
-  using: 'node12'
+  using: 'node16'
   main: './dist/index.js'

@@ -1,7 +1,6 @@
 # Jira Create
 Create new issue
 
-For examples on how to use this, check out the [gajira-demo](https://github.com/atlassian/gajira-demo) repository
 > ##### Only supports Jira Cloud. Does not support Jira Server (hosted)
 
 ## Usage
@@ -11,14 +10,12 @@ For examples on how to use this, check out the [gajira-demo](https://github.com/
 ```yaml
 - name: Create
   id: create
-  uses: atlassian/gajira-create@master
+  uses: atlassian/gajira-create@3.0.0
   with:
     project: GA
     issuetype: Build
-    summary: |
-      Build completed for ${{ github.repository }}
-    description: |
-      Compare branch
+    summary: Build completed for ${{ github.repository }}
+    description: Compare branch
     fields: '{"customfield_10171": "test"}'
 
 - name: Log created issue
