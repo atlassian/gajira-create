@@ -10,7 +10,7 @@ Create new issue
 ```yaml
 - name: Create
   id: create
-  uses: atlassian/gajira-create@3.0.0
+  uses: atlassian/gajira-create@v3
   with:
     project: GA
     issuetype: Build
