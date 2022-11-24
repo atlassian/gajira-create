@@ -1,7 +1,7 @@
 {
-  "name": "create",
-  "version": "3.0.0",
-  "description": "",
+  "name": "@atlassian/gajira-create",
+  "version": "3.0.1",
+  "description": "Creates a Jira issue within Github Actions",
   "main": "index.js",
   "scripts": {
     "prepare": "husky install",
@@ -21,7 +21,6 @@
     "yaml": "^2.1.3"
   },
   "devDependencies": {
-    "@atlassian-partner-engineering/eslint-config": "^4.0.0",
     "@vercel/ncc": "^0.34.0",
     "eslint": "^8.27.0",
     "husky": "^8.0.2",
