@@ -13,14 +13,11 @@ const issuetypeName = 'TESTISSUETYPE'
 
 const { mocks } = require('./helpers')
 
-test(`Should create issue with customfield`, async () => {
+test(`Should create version`, async () => {
   const action = new Action({
     argv: {
       project: projectKey,
-      issuetype: issuetypeName,
-      summary: 'This is summary ref/head/blah',
-      description: 'This is description ref/head/blah',
-      fields: '{"customfield_10171" : "test"}',
+			name: "test",
     },
     config,
   })
@@ -28,97 +25,32 @@ test(`Should create issue with customfield`, async () => {
   const createMetaRequest = nock(baseUrl)
     .get('/rest/api/2/issue/createmeta')
     .query({
-      expand: 'projects.issuetypes.fields',
       projectKeys: 'TESTPROJECT',
-      issuetypeNames: 'TESTISSUETYPE',
     })
     .reply(200, mocks.jira.responses.createMeta)
 
   let createIssueRequestBody = {}
-  const createIssueRequest = nock(baseUrl)
-    .post('/rest/api/2/issue')
+  const createVersionRequest = nock(baseUrl)
+    .post('/rest/api/2/version')
     .reply(200, (url, body) => {
       createIssueRequestBody = body
 
       return {
-        key: 'TESTPROJECT-2',
+        id: 1234,
       }
     })
 
   await createMetaRequest
-  await createIssueRequest
+  await createVersionRequest
 
   const result = await action.execute()
 
   expect(createIssueRequestBody).toEqual({
-    fields: {
-      project: {
-        key: projectKey,
-      },
-      issuetype: {
-        name: issuetypeName,
-      },
-      summary: 'This is summary ref/head/blah',
-      description: 'This is description ref/head/blah',
-      customfield_10171: 'test',
-    },
-  })
+		"name": "test",
+		"project": "TESTPROJECT"
+	})
 
   expect(result).toEqual({
-    issue: 'TESTPROJECT-2',
-  })
-})
-
-test(`Should create simple issue without customfield`, async () => {
-  const action = new Action({
-    argv: {
-      project: projectKey,
-      issuetype: issuetypeName,
-      summary: 'This is summary ref/head/blah',
-      description: 'This is description ref/head/blah',
-    },
-    config,
-  })
-
-  const createMetaRequest = nock(baseUrl)
-    .get('/rest/api/2/issue/createmeta')
-    .query({
-      expand: 'projects.issuetypes.fields',
-      projectKeys: 'TESTPROJECT',
-      issuetypeNames: 'TESTISSUETYPE',
-    })
-    .reply(200, mocks.jira.responses.createMeta)
-
-  let createIssueRequestBody = {}
-  const createIssueRequest = nock(baseUrl)
-    .post('/rest/api/2/issue')
-    .reply(200, (url, body) => {
-      createIssueRequestBody = body
-
-      return {
-        key: 'TESTPROJECT-2',
-      }
-    })
-
-  await createMetaRequest
-  await createIssueRequest
-
-  const result = await action.execute()
-
-  expect(createIssueRequestBody).toEqual({
-    fields: {
-      project: {
-        key: projectKey,
-      },
-      issuetype: {
-        name: issuetypeName,
-      },
-      summary: 'This is summary ref/head/blah',
-      description: 'This is description ref/head/blah',
-    },
-  })
-
-  expect(result).toEqual({
-    issue: 'TESTPROJECT-2',
+		release: 1234,
   })
 })

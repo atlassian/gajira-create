@@ -19,13 +19,13 @@ async function exec () {
     }).execute()
 
     if (result) {
-      // result.issue is the issue key
-      console.log(`Created issue: ${result.issue}`)
-      console.log(`Saving ${result.issue} to ${cliConfigPath}`)
-      console.log(`Saving ${result.issue} to ${configPath}`)
+      // result.release is the release key
+      console.log(`Created release: ${result.release}`)
+      console.log(`Saving ${result.release} to ${cliConfigPath}`)
+      console.log(`Saving ${result.release} to ${configPath}`)
 
-      // Expose created issue's key as an output
-      core.setOutput('issue', result.issue)
+      // Expose created release's key as an output
+      core.setOutput('release', result.release)
 
       const yamledResult = YAML.stringify(result)
       const extendedConfig = Object.assign({}, config, result)
@@ -35,7 +35,7 @@ async function exec () {
       return fs.appendFileSync(cliConfigPath, yamledResult)
     }
 
-    console.log('Failed to create issue.')
+    console.log('Failed to create release.')
     process.exit(78)
   } catch (error) {
     console.error(error)
@@ -46,10 +46,7 @@ async function exec () {
 function parseArgs () {
   return {
     project: core.getInput('project'),
-    issuetype: core.getInput('issuetype'),
-    summary: core.getInput('summary'),
-    description: core.getInput('description'),
-    fields: core.getInput('fields'),
+		name: core.getInput('name'),
   }
 }
 

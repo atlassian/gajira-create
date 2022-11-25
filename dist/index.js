@@ -22,13 +22,11 @@ module.exports = class {
   async execute () {
     const { argv } = this
     const projectKey = argv.project
-    const issuetypeName = argv.issuetype
+		const name = argv.name
 
     // map custom fields
     const { projects } = await this.Jira.getCreateMeta({
-      expand: 'projects.issuetypes.fields',
       projectKeys: projectKey,
-      issuetypeNames: issuetypeName,
     })
 
     if (projects.length === 0) {
@@ -37,51 +35,17 @@ module.exports = class {
       return
     }
 
-    const [project] = projects
+		const [project] = projects
 
-    if (project.issuetypes.length === 0) {
-      console.error(`issuetype '${issuetypeName}' not found`)
+		const payload = {
+			project: projectKey,
+			projectId: project.id,
+			name,
+		}
 
-      return
-    }
+    const version = await this.Jira.createVersion(payload)
 
-    let providedFields = [{
-      key: 'project',
-      value: {
-        key: projectKey,
-      },
-    }, {
-      key: 'issuetype',
-      value: {
-        name: issuetypeName,
-      },
-    }, {
-      key: 'summary',
-      value: argv.summary,
-    }]
-
-    if (argv.description) {
-      providedFields.push({
-        key: 'description',
-        value: argv.description,
-      })
-    }
-
-    if (argv.fields) {
-      providedFields = [...providedFields, ...this.transformFields(argv.fields)]
-    }
-
-    const payload = providedFields.reduce((acc, field) => {
-      acc.fields[field.key] = field.value
-
-      return acc
-    }, {
-      fields: {},
-    })
-
-    const issue = await this.Jira.createIssue(payload)
-
-    return { issue: issue.key }
+    return { release: version.id }
   }
 
   transformFields (fieldsString) {
@@ -159,6 +123,12 @@ class Jira {
       body: data,
     })
   }
+
+	async createVersion (body) {
+		return this.fetch('createVersion',
+			{ pathname: '/rest/api/2/version' },
+			{ method: 'POST', body })
+	}
 
   async fetch (apiMethodName,
     { host, pathname, query },
@@ -32542,13 +32512,13 @@ async function exec () {
     }).execute()
 
     if (result) {
-      // result.issue is the issue key
-      console.log(`Created issue: ${result.issue}`)
-      console.log(`Saving ${result.issue} to ${cliConfigPath}`)
-      console.log(`Saving ${result.issue} to ${configPath}`)
+      // result.release is the release key
+      console.log(`Created release: ${result.release}`)
+      console.log(`Saving ${result.release} to ${cliConfigPath}`)
+      console.log(`Saving ${result.release} to ${configPath}`)
 
-      // Expose created issue's key as an output
-      core.setOutput('issue', result.issue)
+      // Expose created release's key as an output
+      core.setOutput('release', result.release)
 
       const yamledResult = YAML.stringify(result)
       const extendedConfig = Object.assign({}, config, result)
@@ -32558,7 +32528,7 @@ async function exec () {
       return fs.appendFileSync(cliConfigPath, yamledResult)
     }
 
-    console.log('Failed to create issue.')
+    console.log('Failed to create release.')
     process.exit(78)
   } catch (error) {
     console.error(error)
@@ -32569,10 +32539,7 @@ async function exec () {
 function parseArgs () {
   return {
     project: core.getInput('project'),
-    issuetype: core.getInput('issuetype'),
-    summary: core.getInput('summary'),
-    description: core.getInput('description'),
-    fields: core.getInput('fields'),
+		name: core.getInput('name'),
   }
 }
 

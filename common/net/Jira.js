@@ -58,6 +58,12 @@ class Jira {
     })
   }
 
+	async createVersion (body) {
+		return this.fetch('createVersion',
+			{ pathname: '/rest/api/2/version' },
+			{ method: 'POST', body })
+	}
+
   async fetch (apiMethodName,
     { host, pathname, query },
     { method, body, headers = {} } = {}) {
