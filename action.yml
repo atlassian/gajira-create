@@ -1,8 +1,8 @@
 name: Jira Create issue
 description: Create a new Jira issue
 branding:
-  icon: 'check-square'
-  color: 'blue'
+  icon: "check-square"
+  color: "blue"
 inputs:
   project:
     description: Key of the project
@@ -16,6 +16,9 @@ inputs:
   description:
     description: Issue description
     required: false
+  labels:
+    description: Issue labels
+    required: false
   fields:
     description: Additional fields in JSON format
     required: false
@@ -23,5 +26,5 @@ outputs:
   issue:
     description: Key of the newly created issue
 runs:
-  using: 'node16'
-  main: './dist/index.js'
+  using: "node16"
+  main: "./dist/index.js"
