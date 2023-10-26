@@ -1,3 +1,7 @@
+---------
+⚠️ This repository isn’t maintained anymore.
+---------
+
 # Jira Create
 Create new issue
 
