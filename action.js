@@ -1,89 +1,114 @@
-const Jira = require('./common/net/Jira')
+const Jira = require("./common/net/Jira");
+const AgileClient = require("./common/net/AgileClient");
 
 module.exports = class {
-  constructor ({ githubEvent, argv, config }) {
-    this.Jira = new Jira({
-      baseUrl: config.baseUrl,
-      token: config.token,
-      email: config.email,
-    })
+	constructor({ githubEvent, argv, config }) {
+		this.Jira = new Jira({
+			baseUrl: config.baseUrl,
+			token: config.token,
+			email: config.email,
+		});
+		this.agileClient = new AgileClient(
+			config.baseUrl,
+			config.token,
+			config.email
+		);
 
-    this.config = config
-    this.argv = argv
-    this.githubEvent = githubEvent
-  }
+		this.config = config;
+		this.argv = argv;
+		this.githubEvent = githubEvent;
+	}
 
-  async execute () {
-    const { argv } = this
-    const projectKey = argv.project
-    const issuetypeName = argv.issuetype
+	async execute() {
+		const { argv } = this;
+		const projectKey = argv.project;
+		const issuetypeName = argv.issuetype;
+		const activeSprint =
+			argv.boardId && (await this.agileClient.getActiveSprint(argv.boardId));
 
-    // map custom fields
-    const { projects } = await this.Jira.getCreateMeta({
-      expand: 'projects.issuetypes.fields',
-      projectKeys: projectKey,
-      issuetypeNames: issuetypeName,
-    })
+		// map custom fields
+		const { projects } = await this.Jira.getCreateMeta({
+			expand: "projects.issuetypes.fields",
+			projectKeys: projectKey,
+			issuetypeNames: issuetypeName,
+		});
 
-    if (projects.length === 0) {
-      console.error(`project '${projectKey}' not found`)
+		if (projects.length === 0) {
+			console.error(`project '${projectKey}' not found`);
 
-      return
-    }
+			return;
+		}
 
-    const [project] = projects
+		const [project] = projects;
 
-    if (project.issuetypes.length === 0) {
-      console.error(`issuetype '${issuetypeName}' not found`)
+		if (project.issuetypes.length === 0) {
+			console.error(`issuetype '${issuetypeName}' not found`);
 
-      return
-    }
+			return;
+		}
 
-    let providedFields = [{
-      key: 'project',
-      value: {
-        key: projectKey,
-      },
-    }, {
-      key: 'issuetype',
-      value: {
-        name: issuetypeName,
-      },
-    }, {
-      key: 'summary',
-      value: argv.summary,
-    }]
+		let providedFields = [
+			{
+				key: "project",
+				value: {
+					key: projectKey,
+				},
+			},
+			{
+				key: "issuetype",
+				value: {
+					name: issuetypeName,
+				},
+			},
+			{
+				key: "summary",
+				value: argv.summary,
+			},
+		];
 
-    if (argv.description) {
-      providedFields.push({
-        key: 'description',
-        value: argv.description,
-      })
-    }
+		if (activeSprint) {
+			providedFields.push({
+				key: "customfield_10020",
+				value: activeSprint.id,
+			});
+		}
 
-    if (argv.fields) {
-      providedFields = [...providedFields, ...this.transformFields(argv.fields)]
-    }
+		if (argv.description) {
+			providedFields.push({
+				key: "description",
+				value: argv.description,
+			});
+		}
 
-    const payload = providedFields.reduce((acc, field) => {
-      acc.fields[field.key] = field.value
+		if (argv.fields) {
+			providedFields = [
+				...providedFields,
+				...this.transformFields(argv.fields),
+			];
+		}
 
-      return acc
-    }, {
-      fields: {},
-    })
+		const payload = providedFields.reduce(
+			(acc, field) => {
+				acc.fields[field.key] = field.value;
 
-    const issue = await this.Jira.createIssue(payload)
+				return acc;
+			},
+			{
+				fields: {},
+			}
+		);
 
-    return { issue: issue.key }
-  }
+		const issue = await this.Jira.createIssue(payload);
 
-  transformFields (fieldsString) {
-    const fields = JSON.parse(fieldsString)
+		return { issue: issue.key };
+	}
 
-    return Object.keys(fields).map(fieldKey => ({
-      key: fieldKey,
-      value: fields[fieldKey],
-    }))
-  }
-}
+	transformFields(fieldsString) {
+		const fields = JSON.parse(fieldsString);
+
+		return Object.keys(fields).map((fieldKey) => ({
+			key: fieldKey,
+			value: fields[fieldKey],
+		}));
+	}
+};

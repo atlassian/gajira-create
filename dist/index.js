@@ -4,93 +4,161 @@ require('./sourcemap-register.js');/******/ (() => { // webpackBootstrap
 /***/ 4582:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-const Jira = __nccwpck_require__(5557)
+const Jira = __nccwpck_require__(5557);
+const AgileClient = __nccwpck_require__(97);
 
 module.exports = class {
-  constructor ({ githubEvent, argv, config }) {
-    this.Jira = new Jira({
-      baseUrl: config.baseUrl,
-      token: config.token,
-      email: config.email,
-    })
+	constructor({ githubEvent, argv, config }) {
+		this.Jira = new Jira({
+			baseUrl: config.baseUrl,
+			token: config.token,
+			email: config.email,
+		});
+		this.agileClient = new AgileClient(
+			config.baseUrl,
+			config.token,
+			config.email
+		);
 
-    this.config = config
-    this.argv = argv
-    this.githubEvent = githubEvent
+		this.config = config;
+		this.argv = argv;
+		this.githubEvent = githubEvent;
+	}
+
+	async execute() {
+		const { argv } = this;
+		const projectKey = argv.project;
+		const issuetypeName = argv.issuetype;
+		const activeSprint =
+			argv.boardId && (await this.agileClient.getActiveSprint(argv.boardId));
+
+		// map custom fields
+		const { projects } = await this.Jira.getCreateMeta({
+			expand: "projects.issuetypes.fields",
+			projectKeys: projectKey,
+			issuetypeNames: issuetypeName,
+		});
+
+		if (projects.length === 0) {
+			console.error(`project '${projectKey}' not found`);
+
+			return;
+		}
+
+		const [project] = projects;
+
+		if (project.issuetypes.length === 0) {
+			console.error(`issuetype '${issuetypeName}' not found`);
+
+			return;
+		}
+
+		let providedFields = [
+			{
+				key: "project",
+				value: {
+					key: projectKey,
+				},
+			},
+			{
+				key: "issuetype",
+				value: {
+					name: issuetypeName,
+				},
+			},
+			{
+				key: "summary",
+				value: argv.summary,
+			},
+		];
+
+		if (activeSprint) {
+			providedFields.push({
+				key: "customfield_10020",
+				value: activeSprint.id,
+			});
+		}
+
+		if (argv.description) {
+			providedFields.push({
+				key: "description",
+				value: argv.description,
+			});
+		}
+
+		if (argv.fields) {
+			providedFields = [
+				...providedFields,
+				...this.transformFields(argv.fields),
+			];
+		}
+
+		const payload = providedFields.reduce(
+			(acc, field) => {
+				acc.fields[field.key] = field.value;
+
+				return acc;
+			},
+			{
+				fields: {},
+			}
+		);
+
+		const issue = await this.Jira.createIssue(payload);
+
+		return { issue: issue.key };
+	}
+
+	transformFields(fieldsString) {
+		const fields = JSON.parse(fieldsString);
+
+		return Object.keys(fields).map((fieldKey) => ({
+			key: fieldKey,
+			value: fields[fieldKey],
+		}));
+	}
+};
+
+
+/***/ }),
+
+/***/ 97:
+/***/ ((module) => {
+
+module.exports = class AgileClient {
+  constructor(baseUrl, token, email) {
+    this.baseUrl = baseUrl;
+    this.token = token;
+    this.email = email;
   }
 
-  async execute () {
-    const { argv } = this
-    const projectKey = argv.project
-    const issuetypeName = argv.issuetype
-
-    // map custom fields
-    const { projects } = await this.Jira.getCreateMeta({
-      expand: 'projects.issuetypes.fields',
-      projectKeys: projectKey,
-      issuetypeNames: issuetypeName,
-    })
-
-    if (projects.length === 0) {
-      console.error(`project '${projectKey}' not found`)
-
-      return
-    }
-
-    const [project] = projects
-
-    if (project.issuetypes.length === 0) {
-      console.error(`issuetype '${issuetypeName}' not found`)
-
-      return
-    }
-
-    let providedFields = [{
-      key: 'project',
-      value: {
-        key: projectKey,
-      },
-    }, {
-      key: 'issuetype',
-      value: {
-        name: issuetypeName,
-      },
-    }, {
-      key: 'summary',
-      value: argv.summary,
-    }]
-
-    if (argv.description) {
-      providedFields.push({
-        key: 'description',
-        value: argv.description,
-      })
-    }
-
-    if (argv.fields) {
-      providedFields = [...providedFields, ...this.transformFields(argv.fields)]
-    }
-
-    const payload = providedFields.reduce((acc, field) => {
-      acc.fields[field.key] = field.value
-
-      return acc
-    }, {
-      fields: {},
-    })
-
-    const issue = await this.Jira.createIssue(payload)
-
-    return { issue: issue.key }
+  async #callBoardEndpoint(boardId, queryParams = "") {
+    return (
+      await fetch(
+        `${this.baseUrl}/rest/agile/1.0/board/${boardId}/sprint${queryParams}`,
+        {
+          headers: {
+            Authorization: `Basic ${Buffer.from(
+              `${this.email}:${this.token}`
+            ).toString("base64")}`,
+            Accept: "application/json",
+          },
+          credentials: "include",
+        }
+      )
+    ).json();
   }
 
-  transformFields (fieldsString) {
-    const fields = JSON.parse(fieldsString)
+  async getActiveSprint(boardId) {
+    const searchParams = new URLSearchParams({
+      state: "active",
+    });
+    const activeSprints = await this.#callBoardEndpoint(
+      boardId,
+      `?${searchParams.toString()}`
+    );
 
-    return Object.keys(fields).map(fieldKey => ({
-      key: fieldKey,
-      value: fields[fieldKey],
-    }))
+    return activeSprints.values.slice(-1)[0];
   }
 }
 
@@ -178,7 +246,7 @@ class Jira {
     }
 
     if (headers.Authorization === undefined) {
-      headers.Authorization = `Basic ${Buffer.from(`${this.email}:${this.token}`).toString('base64')}`
+      headers.Authorization = `Basic ${Buffer.from(this.email + ':' + this.token).toString('base64')}`
     }
 
     // strong check for undefined
@@ -32521,62 +32589,62 @@ module.exports = JSON.parse('[[[0,44],"disallowed_STD3_valid"],[[45,46],"valid"]
 var __webpack_exports__ = {};
 // This entry need to be wrapped in an IIFE because it need to be isolated against other modules in the chunk.
 (() => {
-const fs = __nccwpck_require__(7147)
-const YAML = __nccwpck_require__(4083)
-const core = __nccwpck_require__(2186)
+const fs = __nccwpck_require__(7147);
+const YAML = __nccwpck_require__(4083);
+const core = __nccwpck_require__(2186);
 
-const cliConfigPath = `${process.env.HOME}/.jira.d/config.yml`
-const configPath = `${process.env.HOME}/jira/config.yml`
-const Action = __nccwpck_require__(4582)
+const cliConfigPath = `${process.env.HOME}/.jira.d/config.yml`;
+const configPath = `${process.env.HOME}/jira/config.yml`;
+const Action = __nccwpck_require__(4582);
 
 // eslint-disable-next-line import/no-dynamic-require
-const githubEvent = require(process.env.GITHUB_EVENT_PATH)
+const githubEvent = '' //require(process.env.GITHUB_EVENT_PATH);
 const config = YAML.parse(fs.readFileSync(configPath, 'utf8'))
 
-async function exec () {
-  try {
-    const result = await new Action({
-      githubEvent,
-      argv: parseArgs(),
-      config,
-    }).execute()
+async function exec() {
+	try {
+		const result = await new Action({
+			githubEvent,
+			argv: parseArgs(),
+			config,
+		}).execute();
 
-    if (result) {
-      // result.issue is the issue key
-      console.log(`Created issue: ${result.issue}`)
-      console.log(`Saving ${result.issue} to ${cliConfigPath}`)
-      console.log(`Saving ${result.issue} to ${configPath}`)
+		if (result) {
+			// result.issue is the issue key
+			console.log(`Created issue: ${result.issue}`);
+			console.log(`Saving ${result.issue} to ${cliConfigPath}`);
+			console.log(`Saving ${result.issue} to ${configPath}`);
 
-      // Expose created issue's key as an output
-      core.setOutput('issue', result.issue)
+			// Expose created issue's key as an output
+			core.setOutput("issue", result.issue);
 
-      const yamledResult = YAML.stringify(result)
-      const extendedConfig = Object.assign({}, config, result)
+			const yamledResult = YAML.stringify(result);
+			const extendedConfig = Object.assign({}, config, result);
 
-      fs.writeFileSync(configPath, YAML.stringify(extendedConfig))
+			fs.writeFileSync(configPath, YAML.stringify(extendedConfig));
 
-      return fs.appendFileSync(cliConfigPath, yamledResult)
-    }
+			return fs.appendFileSync(cliConfigPath, yamledResult);
+		}
 
-    console.log('Failed to create issue.')
-    process.exit(78)
-  } catch (error) {
-    console.error(error)
-    process.exit(1)
-  }
+		console.log("Failed to create issue.");
+		process.exit(78);
+	} catch (error) {
+		console.error(error);
+		process.exit(1);
+	}
 }
 
-function parseArgs () {
-  return {
-    project: core.getInput('project'),
-    issuetype: core.getInput('issuetype'),
-    summary: core.getInput('summary'),
-    description: core.getInput('description'),
-    fields: core.getInput('fields'),
-  }
+function parseArgs() {
+	return {
+	  project: core.getInput('project'),
+	  issuetype: core.getInput('issuetype'),
+	  summary: core.getInput('summary'),
+	  description: core.getInput('description'),
+	  fields: core.getInput('fields'),
+	}
 }
 
-exec()
+exec();
 
 })();
 
