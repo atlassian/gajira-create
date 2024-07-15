@@ -1,7 +1,3 @@
----------
-⚠️ This repository isn’t maintained anymore.
----------
-
 # Jira Create
 Create new issue
 
@@ -16,7 +12,7 @@ Create new issue
   id: create
   uses: atlassian/gajira-create@v3
   with:
-    project: GA
+    project: BOIL
     issuetype: Build
     summary: Build completed for ${{ github.repository }}
     description: Compare branch
@@ -36,6 +32,7 @@ Create new issue
 - `project` (required) - Key of the project
 - `issuetype` (required) - Type of the issue to be created. Example: 'Incident'
 - `summary` (required) - Issue summary
+- `boardId` - The ID number of the board this issue will be a part of. Used to get the active sprint. Will fail if board is Kanban and doesn't have active sprints.
 - `description` - Issue description
 - `fields` - Additional fields in JSON format
 

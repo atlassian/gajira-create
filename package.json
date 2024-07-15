@@ -9,7 +9,7 @@
     "start": "ncc build index.js -w",
     "test": "jest __tests__",
     "lint": "eslint",
-		"precommit": "run-p lint test build"
+    "precommit": "run-p lint test build"
   },
   "author": "Atlassian <github@atlassian.com>",
   "license": "ISC",
